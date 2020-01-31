@@ -32,6 +32,7 @@ SOFTWARE.
         It will then select a result from the Unsplash API at random.
 
     .PARAMETER ApiKey
+        A base64 encoded API key (access key) used to authenticate with the Unsplash API.
 
     .EXAMPLE
         .\Wallie-Pwsh.ps1 -Topics @("Fish", "Space", "Trains", "Red car", "Jets") -ApiKey "Base64 encoded API key." --Verbose
