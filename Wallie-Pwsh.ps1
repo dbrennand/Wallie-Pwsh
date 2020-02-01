@@ -61,7 +61,7 @@ try {
     $AccessKey = [System.Text.Encoding]::UNICODE.GetString([System.Convert]::FromBase64String($AccessKey))
 }
 catch {
-    Write-Error -Message "Failed to decode base64 encoded API key."
+    Write-Error -Message "Failed to decode base64 encoded access key"
     break
 }
 # Check if topics has been supplied or not, run respective code flow.
@@ -102,6 +102,17 @@ $ImageObject = $JsonResponse | Get-Random
 # Get image download url.
 $ImageUrl = $ImageObject.urls.raw
 Write-Verbose -Message "Image URL is: $ImageUrl"
+# Perform a mock download to the Unsplash API due to API guidelines.
+try {
+    $ImageDownloadLocation = $ImageObject.links.download_location
+    Write-Verbose -Message "Perform mock download to $ImageDownloadLocation due to Unsplash API guidelines"
+    Invoke-RestMethod -Uri $ImageObject.links.download_location -Method "GET" -Headers @{"Authorization" = "Client-ID $AccessKey" 
+    "Accept-Version" = "v1"} | Out-Null
+}
+catch {
+    Write-Error -Message "Failed to perform web request to the Unsplash API endpoint: photo.links.download_location with the following error: $($_.Exception.Message)"
+    break
+}
 # Download the image.
 $ImagePath = "$Env:USERPROFILE\Documents\TempWallpaper.jpeg"
 Write-Verbose -Message "Attempting to download image from URL: $ImageUrl to file path: $ImagePath"
@@ -109,7 +120,7 @@ try {
     Invoke-WebRequest -Uri $ImageUrl -OutFile $ImagePath
 }
 catch {
-    Write-Error -Message "Failed to download the image from URL: $ImageUrl"
+    Write-Error -Message "Failed to download the image from URL: $ImageUrl with the following error: $($_.Exception.Message)"
     break
 }
 # Set the desktop wallpaper.
@@ -132,3 +143,4 @@ public class Params
 }
 "@
 [Params]::SystemParametersInfo($SPI_SETDESKWALLPAPER, 0, $ImagePath, $SPIF_UPDATEINIFILE) | Out-Null
+Write-Output -InputObject "Wallpaper updated successfully"
