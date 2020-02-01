@@ -35,7 +35,7 @@ SOFTWARE.
         A base64 encoded API key (access key) used to authenticate with the Unsplash API.
 
     .EXAMPLE
-        .\Wallie-Pwsh.ps1 -Topics @("Fish", "Space", "Trains", "Red car", "Jets") -AccessKey "Base64 encoded access key." -Verbose
+        .\Wallie-Pwsh.ps1 -Topics "Fish","Space","Trains","Jets" -AccessKey "Base64 encoded access key." -Verbose
 
     .EXAMPLE
         .\Wallie-Pwsh.ps1 -AccessKey "Base64 encoded access key."
