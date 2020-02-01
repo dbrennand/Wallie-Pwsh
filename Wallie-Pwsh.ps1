@@ -31,17 +31,17 @@ SOFTWARE.
         If supplied, Wallie-Pwsh will select a topic at random and use this to query for an image.
         It will then select a result from the Unsplash API at random.
 
-    .PARAMETER ApiKey
+    .PARAMETER AccessKey
         A base64 encoded API key (access key) used to authenticate with the Unsplash API.
 
     .EXAMPLE
-        .\Wallie-Pwsh.ps1 -Topics @("Fish", "Space", "Trains", "Red car", "Jets") -ApiKey "Base64 encoded API key." --Verbose
+        .\Wallie-Pwsh.ps1 -Topics @("Fish", "Space", "Trains", "Red car", "Jets") -AccessKey "Base64 encoded access key." -Verbose
 
     .EXAMPLE
-        .\Wallie-Pwsh.ps1 -ApiKey "Base64 encoded API key."
+        .\Wallie-Pwsh.ps1 -AccessKey "Base64 encoded access key."
 
     .NOTES
-        Ensure you provide the API key as a base64 encoded string. Sadly, security through obscurity. 
+        Ensure you provide the AccessKey as a base64 encoded string. Sadly, security through obscurity. 
         If you know a better way of handling this, feel free to submit a PR :-)
 #>
 [CmdletBinding()]
@@ -52,12 +52,13 @@ param (
 
     [Parameter(Mandatory = $true)]
     [String]
-    $ApiKey
+    $AccessKey
 )
-# Decode base64 encoded ApiKey.
+$Version = "0.0.1"
+# Decode base64 encoded AccessKey.
 try {
-    Write-Verbose -Message "Attempting to decode API key"
-    $ApiKey = [System.Text.Encoding]::UNICODE.GetString([System.Convert]::FromBase64String($ApiKey))
+    Write-Verbose -Message "Attempting to decode access key"
+    $AccessKey = [System.Text.Encoding]::UNICODE.GetString([System.Convert]::FromBase64String($AccessKey))
 }
 catch {
     Write-Error -Message "Failed to decode base64 encoded API key."
@@ -67,9 +68,9 @@ catch {
 if ($Topics -eq $null) {
     # If null (not supplied), query the API using the random endpoint.
     try {
-        Write-Verbose -Message "Attempting to make a web request to the Unsplash API /photos/random endpoint"
-        # Retrieve a random wallpaper in landscape orientation
-        $JsonResponse = Invoke-RestMethod -Uri "https://api.unsplash.com/photos/random" -Method "GET" -Headers @{"Authorization" = "Client-ID $ApiKey" 
+        Write-Verbose -Message "Attempting to make a web request to the Unsplash API endpoint: /photos/random"
+        # Retrieve a random wallpaper in landscape orientation.
+        $JsonResponse = Invoke-RestMethod -Uri "https://api.unsplash.com/photos/random" -Method "GET" -Headers @{"Authorization" = "Client-ID $AccessKey" 
         "Accept-Version" = "v1"} -Body @{"orientation" = "landscape" }
     }
     catch {
@@ -79,12 +80,13 @@ if ($Topics -eq $null) {
 } else {
     # If not null.
     # Select a topic at random, query the image using chosen topic and select an image returned at random.
-    # Select a random topic from $Topics
+    # Select a random topic from $Topics.
     Write-Verbose -Message "Choosing a random topic"
     $Topic = $Topics[(Get-Random -Maximum ($Topics).Count)]
+    Write-Verbose -Message "Topic chosen is: $Topic"
     try {
         Write-Verbose -Message "Attempting to make a web request to the Unsplash API /photos/random endpoint with the topic: $Topic"
-        $JsonResponse = Invoke-RestMethod -Uri "https://api.unsplash.com/photos/random" -Method "GET" -Headers @{"Authorization" = "Client-ID $ApiKey"
+        $JsonResponse = Invoke-RestMethod -Uri "https://api.unsplash.com/photos/random" -Method "GET" -Headers @{"Authorization" = "Client-ID $AccessKey"
         "Accept-Version" = "v1"} -Body @{"query" = $Topic
         "orientation" = "landscape" 
         "count" = "30"}
@@ -94,7 +96,7 @@ if ($Topics -eq $null) {
         break
     }
 }
-# Select a random image from the $JsonResponse 
+# Select a random image from the $JsonResponse.
 Write-Verbose -Message "Selecting a random image from the JSON response"
 $ImageObject = $JsonResponse | Get-Random
 # Get image download url.
@@ -112,7 +114,21 @@ catch {
 }
 # Set the desktop wallpaper.
 Write-Verbose -Message "Setting desktop wallpaper"
-Remove-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "Wallpaper"
-RUNDLL32.EXE USER32.DLL,UpdatePerUserSystemParameters 1, True
-Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "Wallpaper" -Value $ImagePath
-RUNDLL32.EXE USER32.DLL,UpdatePerUserSystemParameters 1, True
+# Credit for the code below comes from Jose Espitia
+# https://www.joseespitia.com/2017/09/15/set-wallpaper-powershell-function/
+$SPI_SETDESKWALLPAPER = 0x14;
+$SPIF_UPDATEINIFILE = 0x00;
+Add-Type -TypeDefinition @"
+using System; 
+using System.Runtime.InteropServices;
+ 
+public class Params
+{ 
+    [DllImport("User32.dll",CharSet=CharSet.Unicode)] 
+    public static extern int SystemParametersInfo (Int32 uAction, 
+                                                   Int32 uParam, 
+                                                   String lpvParam, 
+                                                   Int32 fuWinIni);
+}
+"@
+[Params]::SystemParametersInfo($SPI_SETDESKWALLPAPER, 0, $ImagePath, $SPIF_UPDATEINIFILE) | Out-Null
