@@ -38,13 +38,15 @@ A use case for this script is to run it using Task Scheduler.
 
 **Ensure you enter the correct path to Wallie-Pwsh and provide a base64 encoded access key**
 
-Run the following commands to execute this script on user logon:
+1. Launch a PowerShell console as administrator
 
-```powershell
-$Task = New-ScheduledTaskAction -Execute "PowerShell.exe" -Argument '-NoProfile -WindowStyle "Hidden" -ExecutionPolicy "Bypass" -Command absolute\path\to\Wallie-Pwsh.ps1 -Topics "Fish","Space","Trains" -AccessKey "Base64 encoded access key." -Verbose'
-$Trigger = New-ScheduledTaskTrigger -AtLogOn
-Register-ScheduledTask -RunLevel "Highest" -Action $Task -Trigger $Trigger -TaskName "Wallie-Pwsh" -Description "Sets desktop wallpaper at user logon"
-```
+2. Run the following commands to execute this script on user logon:
+
+    ```powershell
+    $Task = New-ScheduledTaskAction -Execute "PowerShell.exe" -Argument '-NoProfile -WindowStyle "Hidden" -ExecutionPolicy "Bypass" -Command absolute\path\to\Wallie-Pwsh.ps1 -Topics "Fish","Space","Trains" -AccessKey "Base64 encoded access key." -Verbose'
+    $Trigger = New-ScheduledTaskTrigger -AtLogOn
+    Register-ScheduledTask -RunLevel "Highest" -Action $Task -Trigger $Trigger -TaskName "Wallie-Pwsh" -Description "Sets desktop wallpaper at user logon"
+    ```
 
 ## Authors -- Contributors
 
