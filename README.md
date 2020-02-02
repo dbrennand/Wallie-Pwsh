@@ -1,5 +1,5 @@
 # Wallie-Pwsh
-Wallie-Pwsh can set your desktop wallpaper on Windows 10
+Wallie-Pwsh can set your desktop wallpaper on Windows 10 🖥️
 
 ## Prerequisites
 
