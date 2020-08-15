@@ -21,28 +21,29 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-    .SYNOPSIS
-        Wallie-Pwsh sets your desktop wallpaper.
-    
-    .DESCRIPTION
-        Wallie-Pwsh sets your desktop wallpaper using the Unsplash API!
+.SYNOPSIS
+    Wallie-Pwsh updates your desktop wallpaper.
 
-    .PARAMETER Topics
-        If supplied, Wallie-Pwsh will select a topic at random and use this to query for an image.
-        It will then select a result from the Unsplash API at random.
+.DESCRIPTION
+    Wallie-Pwsh updates your desktop wallpaper using the Unsplash API.
 
-    .PARAMETER AccessKey
-        A base64 encoded API key (access key) used to authenticate with the Unsplash API.
+.PARAMETER Topics
+    If supplied, Wallie-Pwsh will select a user provided topic at random and use this to query an image from the Unsplash API.
+    Wallie-Pwsh will then select a result from the Unsplash API at random.
 
-    .EXAMPLE
-        .\Wallie-Pwsh.ps1 -Topics "Fish","Space","Trains","Jets" -AccessKey "Base64 encoded access key." -Verbose
+.PARAMETER AccessKey
+    A base64 encoded access key used to authenticate with the Unsplash API.
 
-    .EXAMPLE
-        .\Wallie-Pwsh.ps1 -AccessKey "Base64 encoded access key."
+.EXAMPLE
+    .\Wallie-Pwsh.ps1 -Topics "Fish","Space","Trains","Jets" `
+        -AccessKey "MwAxADgANQAxADIAYQA3AGEAMwBkAGsANABkAGsANQBlADkAOAAwADYAMwA2ADQAMgBmAHYAZAA2ADMANgA5AHMAZABkADkANAA4ADMANwA0AGUAYQAxADYAMQBmAGMAZgAyAG4AZAA3AHkAawA2ADAAYgA1AHYAOQAxAGUAOQA=" -Verbose
 
-    .NOTES
-        Ensure you provide the AccessKey as a base64 encoded string. Sadly, security through obscurity. 
-        If you know a better way of handling this, feel free to submit a PR :-)
+.EXAMPLE
+    .\Wallie-Pwsh.ps1 -AccessKey "MwAxADgANQAxADIAYQA3AGEAMwBkAGsANABkAGsANQBlADkAOAAwADYAMwA2ADQAMgBmAHYAZAA2ADMANgA5AHMAZABkADkANAA4ADMANwA0AGUAYQAxADYAMQBmAGMAZgAyAG4AZAA3AHkAawA2ADAAYgA1AHYAOQAxAGUAOQA=" -Verbose
+
+.NOTES
+    Ensure you provide the AccessKey parameter as a base64 encoded string. Sadly, security through obscurity.
+    If you know a better way of handling this, feel free to submit a PR :-)
 #>
 [CmdletBinding()]
 param (
@@ -54,93 +55,110 @@ param (
     [String]
     $AccessKey
 )
-$Version = "0.0.1"
-# Decode base64 encoded AccessKey.
+
+$Version = "0.0.2"
+
+# Decode base64 encoded AccessKey parameter
 try {
-    Write-Verbose -Message "Attempting to decode access key"
+    Write-Verbose -Message "Attempting to decode base64 encoded access key."
     $AccessKey = [System.Text.Encoding]::UNICODE.GetString([System.Convert]::FromBase64String($AccessKey))
 }
 catch {
-    Write-Error -Message "Failed to decode base64 encoded access key"
-    break
+    throw "Failed to decode base64 encoded access key."
 }
-# Check if topics has been supplied or not, run respective code flow.
-if ($Topics -eq $null) {
-    # If null (not supplied), query the API using the random endpoint.
-    try {
-        Write-Verbose -Message "Attempting to make a web request to the Unsplash API endpoint: /photos/random"
-        # Retrieve a random wallpaper in landscape orientation.
-        $JsonResponse = Invoke-RestMethod -Uri "https://api.unsplash.com/photos/random" -Method "GET" -Headers @{"Authorization" = "Client-ID $AccessKey" 
-        "Accept-Version" = "v1"} -Body @{"orientation" = "landscape" }
-    }
-    catch {
-        Write-Error -Message "Failed to perform web request to the Unsplash API endpoint: https://api.unsplash.com/photos/random"
-        break
-    }
-} else {
-    # If not null.
-    # Select a topic at random, query the image using chosen topic and select an image returned at random.
-    # Select a random topic from $Topics.
-    Write-Verbose -Message "Choosing a random topic"
+
+# Declare Unsplash API random endpoint
+$UnsplashApiRandomEndpoint = "https://api.unsplash.com/photos/random"
+# Declare Unsplash API request headers hashtable
+$RequestHeaders = @{ "Authorization" = "Client-ID $($AccessKey)"; "Accept-Version" = "v1" }
+
+Write-Output -InputObject "Obtaining random images from the Unsplash API."
+
+if ($Topics) {
+    # Topics parameter has been provided
+    # Select a user provided topic from the array at random, query for images from the Unplash API using chosen topic
+    Write-Verbose -Message "Attempting to select a topic at random from provided topics ""$($Topics)""."
     $Topic = $Topics[(Get-Random -Maximum ($Topics).Count)]
-    Write-Verbose -Message "Topic chosen is: $Topic"
+    Write-Verbose -Message "Chosen topic is ""$($Topic)""."
     try {
-        Write-Verbose -Message "Attempting to make a web request to the Unsplash API /photos/random endpoint with the topic: $Topic"
-        $JsonResponse = Invoke-RestMethod -Uri "https://api.unsplash.com/photos/random" -Method "GET" -Headers @{"Authorization" = "Client-ID $AccessKey"
-        "Accept-Version" = "v1"} -Body @{"query" = $Topic
-        "orientation" = "landscape" 
-        "count" = "30"}
+        Write-Verbose -Message "Attempting to make a web request to the Unsplash API endpoint ""$($UnsplashApiRandomEndpoint)"" using the topic ""$($Topic)""."
+        $JsonResponse = Invoke-RestMethod -Uri $UnsplashApiRandomEndpoint -Method GET -Headers $RequestHeaders -Body @{ "query" = $($Topic); "orientation" = "landscape"; "count" = "30" }
     }
     catch {
-        Write-Error -Message "Failed to perform web request to the Unsplash API endpoint: https://api.unsplash.com/photos/random with the topic: $Topic"
-        break
+        throw "Failed to make a web request to the Unsplash API endpoint ""$($UnsplashApiRandomEndpoint)"" using the topic ""$($Topic)"":`n$($_.Exception.Message)"
     }
 }
-# Select a random image from the $JsonResponse.
-Write-Verbose -Message "Selecting a random image from the JSON response"
+else {
+    # Topics parameter has not been provided
+    # Query random images from the Unsplash API
+    try {
+        Write-Verbose -Message "Attempting to make a web request to the Unsplash API endpoint ""$($UnsplashApiRandomEndpoint)"" with no topic."
+        $JsonResponse = Invoke-RestMethod -Uri $UnsplashApiRandomEndpoint -Method GET -Headers $RequestHeaders -Body @{ "orientation" = "landscape"; "count" = "30" }
+    }
+    catch {
+        throw "Failed to make a web request to the Unsplash API endpoint ""$($UnsplashApiRandomEndpoint)"" with no topic:`n$($_.Exception.Message)"
+    }
+}
+
+# Select a random image from the JsonResponse
+Write-Verbose -Message "Attempting to select a random image from the Unsplash API JSON response."
 $ImageObject = $JsonResponse | Get-Random
-# Get image download url.
-$ImageUrl = $ImageObject.urls.raw
-Write-Verbose -Message "Image URL is: $ImageUrl"
-# Perform a mock download to the Unsplash API due to API guidelines.
+Write-Verbose -Message "Randomly chosen image object:`n$($ImageObject)."
+# Obtain image download url
+Write-Verbose -Message "Attempting to obtain download URL for the chosen image."
+$ImageUrl = $ImageObject.Urls.Raw
+Write-Verbose -Message "Image URL ""$($ImageUrl)""."
+
+# Perform a mock download to the Unsplash API
+# This is required by Unsplash API guidelines
 try {
-    $ImageDownloadLocation = $ImageObject.links.download_location
-    Write-Verbose -Message "Perform mock download to $ImageDownloadLocation due to Unsplash API guidelines"
-    Invoke-RestMethod -Uri $ImageObject.links.download_location -Method "GET" -Headers @{"Authorization" = "Client-ID $AccessKey" 
-    "Accept-Version" = "v1"} | Out-Null
+    Write-Verbose -Message "Attempting to obtain download location URL for the chosen image."
+    $ImageDownloadLocation = $ImageObject.Links.Download_Location
+    Write-Verbose -Message "Attempting to make a web request to endpoint ""$($ImageDownloadLocation)"" to perform a mock download required by the Unsplash API guidelines."
+    Invoke-RestMethod -Uri $ImageDownloadLocation -Method GET -Headers $RequestHeaders | Out-Null
 }
 catch {
-    Write-Error -Message "Failed to perform web request to the Unsplash API endpoint: photo.links.download_location with the following error: $($_.Exception.Message)"
-    break
+    throw "Failed to make a web request to the Unsplash API endpoint ""$($ImageDownloadLocation)"":`n$($_.Exception.Message)"
 }
-# Download the image.
-$ImagePath = "$Env:USERPROFILE\Documents\TempWallpaper.jpeg"
-Write-Verbose -Message "Attempting to download image from URL: $ImageUrl to file path: $ImagePath"
+
+# Download the chosen image
+Write-Output -InputObject "Downloading chosen image from the Unsplash API."
+$ImagePath = "$($Env:USERPROFILE)\Documents\TempWallpaper.jpeg"
 try {
+    Write-Verbose -Message "Attempting to download the chosen image using URL ""$($ImageUrl)"" to file path ""$($ImagePath)""."
     Invoke-WebRequest -Uri $ImageUrl -OutFile $ImagePath
 }
 catch {
-    Write-Error -Message "Failed to download the image from URL: $ImageUrl with the following error: $($_.Exception.Message)"
-    break
+    throw "Failed to download the chosen image using URL ""$($ImageUrl)"":`n$($_.Exception.Message)"
 }
-# Set the desktop wallpaper.
-Write-Verbose -Message "Setting desktop wallpaper"
-# Credit for the code below comes from Jose Espitia
-# https://www.joseespitia.com/2017/09/15/set-wallpaper-powershell-function/
+
+# Update the desktop wallpaper
+Write-Verbose -Message "Attempting to update the desktop wallpaper."
+<#
+Credit for the code below comes from Jose Espitia
+https://www.joseespitia.com/2017/09/15/set-wallpaper-powershell-function/
+#>
 $SPI_SETDESKWALLPAPER = 0x14;
 $SPIF_UPDATEINIFILE = 0x00;
+Write-Verbose -Message "Attempting to add required type definition."
 Add-Type -TypeDefinition @"
-using System; 
+using System;
 using System.Runtime.InteropServices;
- 
+
 public class Params
-{ 
-    [DllImport("User32.dll",CharSet=CharSet.Unicode)] 
-    public static extern int SystemParametersInfo (Int32 uAction, 
-                                                   Int32 uParam, 
-                                                   String lpvParam, 
+{
+    [DllImport("User32.dll",CharSet=CharSet.Unicode)]
+    public static extern int SystemParametersInfo (Int32 uAction,
+                                                   Int32 uParam,
+                                                   String lpvParam,
                                                    Int32 fuWinIni);
 }
 "@
-[Params]::SystemParametersInfo($SPI_SETDESKWALLPAPER, 0, $ImagePath, $SPIF_UPDATEINIFILE) | Out-Null
-Write-Output -InputObject "Wallpaper updated successfully"
+try {
+    [Params]::SystemParametersInfo($SPI_SETDESKWALLPAPER, 0, $ImagePath, $SPIF_UPDATEINIFILE) | Out-Null
+}
+catch {
+    throw "Failed to update desktop wallpaper from downloaded image located at ""$($ImagePath)"" using parameters `$SPI_SETDESKWALLPAPER = 0x14; `$SPIF_UPDATEINIFILE = 0x00;:`n$($_.Exception.Message)"
+}
+Write-Verbose -Message "Successfully updated wallpaper from downloaded image located at ""$($ImagePath)"" using parameters `$SPI_SETDESKWALLPAPER = 0x14; `$SPIF_UPDATEINIFILE = 0x00;."
+Write-Output -InputObject "Successfully updated desktop wallpaper."
