@@ -18,7 +18,7 @@ Wallie-Pwsh can update your desktop wallpaper on Windows 10 🖥️
     [System.Convert]::ToBase64String([System.Text.Encoding]::UNICODE.GetBytes("Enter access key here."))
     ```
 
-5. When running [Wallie-Pwsh.ps1](Wallie-Pwsh.ps1) provided your base64 encoded access key to the `-AccessKey` parameter.
+5. When running [Wallie-Pwsh.ps1](Wallie-Pwsh.ps1) provide your base64 encoded access key to the `-AccessKey` parameter.
 
 ## Usage
 
