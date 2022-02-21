@@ -48,7 +48,7 @@ param (
     $Topics,
 
     [Parameter(Mandatory = $true)]
-    [ValidateScript({ Test-Path -Path $_ -PathType Leaf })]
+    [ValidateScript( { Test-Path -Path $_ -PathType Leaf })]
     [String]
     $AccessKeyFile
 )
@@ -70,7 +70,7 @@ catch {
 try {
     Write-Verbose -Message "Attempting to decrypt Unsplash access key."
     $AccessKeySecureString = $AccessKeyFileContents | ConvertTo-SecureString
-    $Cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList "Wallie",$AccessKeySecureString
+    $Cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList "Wallie", $AccessKeySecureString
     $AccessKey = $Cred.GetNetworkCredential().Password
 }
 catch {
