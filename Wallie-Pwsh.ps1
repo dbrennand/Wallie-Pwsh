@@ -54,7 +54,7 @@ param (
 )
 
 # Declare script version
-$Version = "0.1.0"
+$Version = "1.0.0"
 Write-Verbose -Message "Running Wallie-Pwsh.ps1 version: $($Version)."
 
 # Get encrypted Unsplash access key from file
