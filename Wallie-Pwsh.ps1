@@ -28,11 +28,11 @@ SOFTWARE.
     Wallie-Pwsh updates your desktop wallpaper using the Unsplash API.
 
 .PARAMETER Topics
-    If supplied, Wallie-Pwsh will select a user provided topic at random and use this to query an image from the Unsplash API.
+    If supplied, Wallie-Pwsh will select a topic at random and use this to query an image from the Unsplash API.
     Wallie-Pwsh will then select a result from the Unsplash API at random.
 
 .PARAMETER AccessKey
-    A base64 encoded access key used to authenticate with the Unsplash API.
+    A base64 encoded access key used to authenticate to the Unsplash API.
 
 .EXAMPLE
     .\Wallie-Pwsh.ps1 -Topics "Fish","Space","Trains","Jets" `
@@ -42,7 +42,7 @@ SOFTWARE.
     .\Wallie-Pwsh.ps1 -AccessKey "MwAxADgANQAxADIAYQA3AGEAMwBkAGsANABkAGsANQBlADkAOAAwADYAMwA2ADQAMgBmAHYAZAA2ADMANgA5AHMAZABkADkANAA4ADMANwA0AGUAYQAxADYAMQBmAGMAZgAyAG4AZAA3AHkAawA2ADAAYgA1AHYAOQAxAGUAOQA=" -Verbose
 
 .NOTES
-    Ensure you provide the AccessKey parameter as a base64 encoded string. Sadly, security through obscurity.
+    Ensure you provide the -AccessKey parameter as a base64 encoded string. Sadly, security through obscurity.
     If you know a better way of handling this, feel free to submit a PR :-)
 #>
 [CmdletBinding()]
@@ -56,7 +56,7 @@ param (
     $AccessKey
 )
 
-$Version = "0.0.2"
+$Version = "0.1.0"
 
 # Decode base64 encoded AccessKey parameter
 try {
