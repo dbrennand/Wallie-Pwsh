@@ -8,50 +8,61 @@ Wallie-Pwsh can update your desktop wallpaper on Windows 10 🖥️
 
 2. Copy the **Access Key**.
 
-3. Launch a PowerShell console as administrator.
+3. Launch a PowerShell terminal as administrator.
 
-4. Run the following command to produce a base64 encoded string representation of your Unsplash API access key:
+4. Clone the repository:
 
     ```powershell
-    # Wallie-Pwsh currently requires that you supply the Unsplash API access key as a base64 encoded string
-    # This command will produce a base64 encoded string of your access key
-    [System.Convert]::ToBase64String([System.Text.Encoding]::UNICODE.GetBytes("Enter access key here."))
+    git clone https://github.com/dbrennand/Wallie-Pwsh.git; cd Wallie-Pwsh
     ```
 
-5. When running [Wallie-Pwsh.ps1](Wallie-Pwsh.ps1) provide your base64 encoded access key to the `-AccessKey` parameter.
+5. Create an `AccessKey.txt` file containing your Unsplash access key in encrypted format:
+
+    ```powershell
+    # Run the command below to stop the Unsplash access key being logged in PSReadline history
+    # Set-PSReadlineOption -HistorySaveStyle SaveNothing
+    $UnsplashAccessKeySecureString = ConvertTo-SecureString -String "<Unsplash access key>" -AsPlainText -Force
+    $Cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList "Wallie-Pwsh",$UnsplashAccessKeySecureString
+    $Cred.Password | ConvertFrom-SecureString | Out-File -FilePath "$(pwd)\AccessKey.txt" -Force
+    ```
 
 ## Usage
 
-Wallie-Pwsh has an optional parameter to supply topics using the `-Topics` parameter.
-When supplied, one will be chosen at random and used in the query to the Unsplash API.
+Wallie-Pwsh has an optional parameter to supply topics using `-Topics`.
+When supplied, a topic will be chosen at random and used in the query to the Unsplash API.
 
 Example usage of the `-Topics` parameter:
 
 ```powershell
-.\Wallie-Pwsh.ps1 -Topics "Fish","Space","Trains","Jets" -AccessKey "Base64 encoded access key." -Verbose
+.\Wallie-Pwsh.ps1 -Topics "Fish","Space","Trains","Jets" -AccessKeyFile ".\AccessKey.txt" -Verbose
 ```
 
-If the `-Topics` parameter is not provided, then Wallie-Pwsh will query the `/photos/random` API endpoint for random images.
+If the `-Topics` parameter is not provided, Wallie-Pwsh will query the `/photos/random` API endpoint for random images.
 
-### Running periodically
+### Updating the Desktop Wallpaper at Log In
 
-A use case for this script is to run it using Windows Task Scheduler.
+A use case for Wallie-Pwsh is to run it using Windows Task Scheduler at log in.
 
 > [!NOTE]
-> Ensure you enter the correct path to [Wallie-Pwsh.ps1](Wallie-Pwsh.ps1) and provide a base64 encoded access key.
+>
+> Make sure you enter the correct absolute paths to the [Wallie-Pwsh.ps1](Wallie-Pwsh.ps1) script and Unsplash access key file (using the `-AccessKeyFile` parameter).
+>
+> To get the absolute paths, run the following command in the Wallie-Pwsh directory:
+> ```powershell
+> (Get-ChildItem | Where-Object -FilterScript { $_.Name -match "AccessKey|Wallie" }).FullName
+> ```
 
-1. Launch a PowerShell console as administrator.
+Configure Windows Task Scheduler to execute Wallie-Pwsh at log in:
 
-2. Run the following commands to execute Wallie-Pwsh at user log in:
+> [!NOTE]
+>
+> Replace the values of the `-Topics` parameter in the command below or remove it.
 
-    > [!NOTE]
-    > Replace the values of the `-Topics` parameter or remove it (if you desire a random image not based on a topic).
-
-    ```powershell
-    $Task = New-ScheduledTaskAction -Execute "PowerShell.exe" -Argument '-NoProfile -WindowStyle "Hidden" -ExecutionPolicy "Bypass" -Command absolute\path\to\Wallie-Pwsh.ps1 -Topics "Mountain","Space","Trains" -AccessKey "Base64 encoded access key." -Verbose'
-    $Trigger = New-ScheduledTaskTrigger -AtLogOn
-    Register-ScheduledTask -RunLevel "Highest" -Action $Task -Trigger $Trigger -TaskName "Wallie-Pwsh" -Description "Updates the desktop wallpaper at user log in."
-    ```
+```powershell
+$Task = New-ScheduledTaskAction -Execute "PowerShell.exe" -Argument '-NoProfile -WindowStyle "Hidden" -ExecutionPolicy "Bypass" -Command absolute\path\to\Wallie-Pwsh.ps1 -Topics "Mountain","Space","Trains" -AccessKeyFile "absolute\path\to\AccessKey.txt" -Verbose'
+$Trigger = New-ScheduledTaskTrigger -AtLogOn
+Register-ScheduledTask -RunLevel "Highest" -Action $Task -Trigger $Trigger -TaskName "Wallie-Pwsh" -Description "Updates the desktop wallpaper at log in."
+```
 
 ## Authors -- Contributors
 
