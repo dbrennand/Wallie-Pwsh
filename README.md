@@ -19,7 +19,7 @@ Wallie-Pwsh can update your desktop wallpaper on Windows 10 🖥️
 5. Create an `AccessKey.txt` file containing your Unsplash access key in encrypted format:
 
     ```powershell
-    # Run the command below to stop the Unsplash access key from being logged in PSReadline history
+    # Run the command below to stop the Unsplash access key being logged in PSReadline history
     # Set-PSReadlineOption -HistorySaveStyle SaveNothing
     $UnsplashAccessKeySecureString = ConvertTo-SecureString -String "<Unsplash access key>" -AsPlainText -Force
     $Cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList "Wallie-Pwsh",$UnsplashAccessKeySecureString
