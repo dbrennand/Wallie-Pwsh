@@ -36,10 +36,10 @@ SOFTWARE.
 
 .EXAMPLE
     .\Wallie-Pwsh.ps1 -Topics "Fish","Space","Trains","Jets" `
-        -AccessKeyFile "C:\Users\user\Wallie-Pwsh\AccessKey.txt"
+        -AccessKeyFile "C:\Users\User\Wallie-Pwsh\AccessKey.txt"
 
 .EXAMPLE
-    .\Wallie-Pwsh.ps1 -AccessKeyFile "C:\Users\user\Wallie-Pwsh\AccessKey.txt" -Verbose
+    .\Wallie-Pwsh.ps1 -AccessKeyFile "C:\Users\User\Wallie-Pwsh\AccessKey.txt" -Verbose
 #>
 [CmdletBinding()]
 param (
