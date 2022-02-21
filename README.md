@@ -37,7 +37,7 @@ Example usage of the `-Topics` parameter:
 .\Wallie-Pwsh.ps1 -Topics "Fish","Space","Trains","Jets" -AccessKeyFile ".\AccessKey.txt" -Verbose
 ```
 
-If the `-Topics` parameter is not provided, then Wallie-Pwsh will query the `/photos/random` API endpoint for random images.
+If the `-Topics` parameter is not provided, Wallie-Pwsh will query the `/photos/random` API endpoint for random images.
 
 ### Updating the Desktop Wallpaper at Log In
 
